@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽獎系統 - 資訊科技部</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #1e3c72;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .main-content {
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .lottery-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .prize-selector {
+            margin-bottom: 25px;
+        }
+
+        .prize-selector label {
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .prize-selector select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .prize-selector select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .prize-info {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .prize-info h3 {
+            color: #1e3c72;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .prize-info .remaining {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .draw-button {
+            width: 100%;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
+            transition: all 0.3s;
+            margin-bottom: 25px;
+        }
+
+        .draw-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(245, 87, 108, 0.6);
+        }
+
+        .draw-button:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .draw-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .winner-display {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 3px solid #f39c12;
+        }
+
+        .winner-display.empty {
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+        }
+
+        .winner-display h2 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .winner-name {
+            font-size: 48px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 15px 0;
+            animation: winnerPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes winnerPop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .winner-info {
+            font-size: 18px;
+            color: #555;
+            margin: 5px 0;
+        }
+
+        .history-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .history-panel h2 {
+            color: #1e3c72;
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .history-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .history-table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .history-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        .history-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .history-table tbody {
+            display: block;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .history-table thead, .history-table tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 16px;
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .reset-button {
+            padding: 12px 30px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #eb3949 0%, #f45c43 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(235, 57, 73, 0.4);
+            transition: all 0.3s;
+        }
+
+        .reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(235, 57, 73, 0.6);
+        }
+
+        /* 彩紙效果 */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 1000;
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* 滾動條美化 */
+        .history-table tbody::-webkit-scrollbar,
+        .winner-display::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .history-table tbody::-webkit-scrollbar-track,
+        .winner-display::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .history-table tbody::-webkit-scrollbar-thumb,
+        .winner-display::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 資訊科技部抽獎系統 🎉</h1>
+            <p>選擇獎項，點擊抽獎按鈕開始！</p>
+        </div>
+
+        <div class="main-content">
+            <div class="lottery-panel">
+                <div class="prize-selector">
+                    <label for="prizeSelect">選擇獎項：</label>
+                    <select id="prizeSelect">
+                        <option value="">-- 請選擇獎項 --</option>
+                    </select>
+                </div>
+
+                <div class="prize-info" id="prizeInfo" style="display: none;">
+                    <h3>剩餘數量</h3>
+                    <div class="remaining" id="remainingCount">0</div>
+                </div>
+
+                <button class="draw-button" id="drawButton" onclick="drawWinner()" disabled>
+                    🎯 開始抽獎
+                </button>
+
+                <div class="winner-display empty" id="winnerDisplay">
+                    <h2>🏆 等待抽獎 🏆</h2>
+                    <p style="color: #999;">請先選擇獎項</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-panel">
+            <h2>📋 中獎記錄</h2>
+            <div id="historyContainer">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 12%; text-align: left;">獎項</th>
+                            <th style="width: 40%; text-align: left;">獎品</th>
+                            <th style="width: 12%; text-align: left;">姓名</th>
+                            <th style="width: 18%; text-align: left;">部門</th>
+                            <th style="width: 18%; text-align: left;">課別</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="5" class="empty-message">尚無中獎記錄</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="reset-button" onclick="resetLottery()">
+                    🔄 重置抽獎系統
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 抽獎資料
+        const LOTTERY_DATA = `
+{
+  "prizes": [
+    {"category": "大全聯", "name": "聲寶微電腦觸控電陶爐KM-ZA13P", "quantity": 1, "drawn": 0},
+    {"category": "大全聯", "name": "FUJIFILM LED多角度護眼檯燈", "quantity": 1, "drawn": 0},
+    {"category": "大全聯", "name": "Tefal 極巧系列不沾鍋具組(平底鍋+小炒鍋+鍋鏟)", "quantity": 1, "drawn": 0},
+    {"category": "大全聯", "name": "天仁茗茶 台灣茗賞-茶王 600g/罐", "quantity": 1, "drawn": 0},
+    {"category": "大全聯", "name": "THERMOS 不鏽鋼含蓋火鍋28cm", "quantity": 1, "drawn": 0},
+    {"category": "大全聯", "name": "雙面法蘭絨雙人被", "quantity": 1, "drawn": 0},
+    {"category": "大全聯", "name": "老協珍亮晶精", "quantity": 2, "drawn": 0},
+    {"category": "士紙", "name": "14天新生舒活霜", "quantity": 1, "drawn": 0},
+    {"category": "大全聯", "name": "PHILIPS蒸汽熨斗", "quantity": 1, "drawn": 0},
+    {"category": "大全聯", "name": "老協珍人蔘精(麥蘆卡蜂蜜)", "quantity": 2, "drawn": 0},
+    {"category": "士紙", "name": "乳木果輕柔潤澤乳液", "quantity": 2, "drawn": 0},
+    {"category": "大全聯", "name": "簡約法蘭絨毯(小象/動物園)", "quantity": 2, "drawn": 0},
+    {"category": "大全聯", "name": "得意的一天 日本玄米油2.4L/瓶", "quantity": 2, "drawn": 0},
+    {"category": "士紙", "name": "胺基酸保濕淨嫩潔顏粉", "quantity": 1, "drawn": 0},
+    {"category": "大全聯", "name": "髮的食譜-洗髮露(奇異果無花果去油蓬鬆/蜂蜜石榴修護潤澤)", "quantity": 2, "drawn": 0},
+    {"category": "大全聯", "name": "Viva萬歲牌綜合纖果(杏仁小魚/無調味核桃/無調味杏仁果)", "quantity": 3, "drawn": 0},
+    {"category": "士紙", "name": "玫瑰美人茶多酚水凝霜", "quantity": 3, "drawn": 0},
+    {"category": "大全聯", "name": "ARIEL 4D抗菌洗衣膠囊補充包-抗菌去漬", "quantity": 4, "drawn": 0},
+    {"category": "士紙", "name": "皇家橙花精油舒壓保濕面膜(盒)", "quantity": 1, "drawn": 0},
+    {"category": "士紙", "name": "精油之王乳香木抗老面膜(盒)", "quantity": 1, "drawn": 0},
+    {"category": "士紙", "name": "玫瑰美人茶多酚面膜(盒)", "quantity": 3, "drawn": 0},
+    {"category": "士紙", "name": "胺基酸修護抗菌洗手露", "quantity": 2, "drawn": 0},
+    {"category": "士紙", "name": "櫻花輕潤舒敏護手霜", "quantity": 1, "drawn": 0},
+    {"category": "士紙", "name": "復活草水潤保濕護手霜", "quantity": 1, "drawn": 0},
+    {"category": "大全聯", "name": "舒潔蘆薈抽取衛生紙(100抽x3包)", "quantity": 12, "drawn": 0},
+    {"category": "大全聯", "name": "舒潔蘆薈抽取衛生紙(100抽x2包)", "quantity": 12, "drawn": 0}
+  ],
+  "participants": [
+    {"name": "王靜瑩", "department": "資訊科技部", "division": "資訊科技部", "type": "參加"},
+    {"name": "塗文隆", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "劉朝明", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "林佳宏", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "周子凱", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "賴韋錕", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "陳鐶澧", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "楊松錸", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "蔣文傳", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "陳品豪", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "魏宇萱", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "高佑漢", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "賴柏瑞", "department": "資訊科技部", "division": "系統服務課", "type": "參加"},
+    {"name": "王吉仁", "department": "資訊科技部", "division": "系統品管課", "type": "參加"},
+    {"name": "洪國育", "department": "資訊科技部", "division": "系統品管課", "type": "參加"},
+    {"name": "張寶合", "department": "資訊科技部", "division": "系統品管課", "type": "參加"},
+    {"name": "陳亭妃", "department": "資訊科技部", "division": "系統品管課", "type": "參加"},
+    {"name": "張瓊勻", "department": "資訊科技部", "division": "系統品管課", "type": "參加"},
+    {"name": "施宣丞", "department": "資訊科技部", "division": "系統品管課", "type": "參加"},
+    {"name": "郭敏漢", "department": "資訊科技部", "division": "系統品管課", "type": "參加"},
+    {"name": "吳佳南", "department": "資訊科技部", "division": "系統品管課", "type": "參加"},
+    {"name": "陳怡嘉", "department": "資訊科技部", "division": "系統設計一課", "type": "參加"},
+    {"name": "謝德憲", "department": "資訊科技部", "division": "系統設計一課", "type": "參加"},
+    {"name": "張瑞云", "department": "資訊科技部", "division": "系統設計一課", "type": "參加"},
+    {"name": "盧錦煌", "department": "資訊科技部", "division": "系統設計一課", "type": "參加"},
+    {"name": "王界文", "department": "資訊科技部", "division": "系統設計一課", "type": "參加"},
+    {"name": "陳宣宏", "department": "資訊科技部", "division": "系統設計一課", "type": "參加"},
+    {"name": "劉家伍", "department": "資訊科技部", "division": "系統設計一課", "type": "參加"},
+    {"name": "陳伊婷", "department": "資訊科技部", "division": "系統設計一課", "type": "參加"},
+    {"name": "黃詩涵", "department": "資訊科技部", "division": "系統設計一課", "type": "參加"},
+    {"name": "鄭博文", "department": "資訊科技部", "division": "系統設計二課", "type": "參加"},
+    {"name": "張雅雯", "department": "資訊科技部", "division": "系統設計二課", "type": "參加"},
+    {"name": "張麗珍", "department": "資訊科技部", "division": "系統設計二課", "type": "參加"},
+    {"name": "洪英傑", "department": "資訊科技部", "division": "系統設計二課", "type": "參加"},
+    {"name": "游曜駿", "department": "資訊科技部", "division": "系統設計二課", "type": "參加"},
+    {"name": "張右翰", "department": "資訊科技部", "division": "系統設計二課", "type": "參加"},
+    {"name": "董泳成", "department": "資訊科技部", "division": "資訊安全課", "type": "參加"},
+    {"name": "高嘉良", "department": "資訊科技部", "division": "資訊安全課", "type": "參加"},
+    {"name": "鄭逢毅", "department": "資訊科技部", "division": "資訊安全課", "type": "參加"},
+    {"name": "陳育駿", "department": "資訊科技部", "division": "資訊安全課", "type": "參加"},
+    {"name": "柯翠青", "department": "資訊科技部", "division": "資訊應用課", "type": "參加"},
+    {"name": "黃瓊寬", "department": "資訊科技部", "division": "資訊應用課", "type": "參加"},
+    {"name": "黃佳敏", "department": "資訊科技部", "division": "資訊應用課", "type": "參加"},
+    {"name": "陳世豪", "department": "資訊科技部", "division": "資訊應用課", "type": "參加"},
+    {"name": "游敦凱", "department": "資訊科技部", "division": "資訊應用課", "type": "參加"},
+    {"name": "邱之麟", "department": "資訊科技部", "division": "資訊應用課", "type": "參加"}
+  ],
+  "non_participants": [
+    {"name": "吳守仁", "department": "資訊科技部", "division": "資訊科技部", "type": "未參加"},
+    {"name": "鄭偉宏", "department": "資訊科技部", "division": "系統服務課", "type": "未參加"},
+    {"name": "李俊鴻", "department": "資訊科技部", "division": "系統服務課", "type": "未參加"},
+    {"name": "戴震", "department": "資訊科技部", "division": "系統服務課", "type": "未參加"},
+    {"name": "王滙揚", "department": "資訊科技部", "division": "系統服務課", "type": "未參加"},
+    {"name": "鄭祺煌", "department": "資訊科技部", "division": "系統品管課", "type": "未參加"},
+    {"name": "徐廉傑", "department": "資訊科技部", "division": "系統設計一課", "type": "未參加"},
+    {"name": "張金蓮", "department": "資訊科技部", "division": "系統設計一課", "type": "未參加"},
+    {"name": "陳佳良", "department": "資訊科技部", "division": "系統設計一課", "type": "未參加"},
+    {"name": "王榮宏", "department": "資訊科技部", "division": "系統設計一課", "type": "未參加"},
+    {"name": "謝政諺", "department": "資訊科技部", "division": "系統設計一課", "type": "未參加"},
+    {"name": "劉育惠", "department": "資訊科技部", "division": "系統設計二課", "type": "未參加"},
+    {"name": "陳薏絜", "department": "資訊科技部", "division": "系統設計二課", "type": "未參加"},
+    {"name": "鍾啟亮", "department": "資訊科技部", "division": "資訊安全課", "type": "未參加"},
+    {"name": "林冠希", "department": "資訊科技部", "division": "資訊應用課", "type": "未參加"},
+    {"name": "林壽昌", "department": "資訊科技部", "division": "資訊應用課", "type": "未參加"},
+    {"name": "曹君豪", "department": "資訊科技部", "division": "資訊應用課", "type": "未參加"},
+    {"name": "蔡正薇", "department": "資訊科技部", "division": "資訊應用課", "type": "未參加"}
+  ]
+}
+`;
+
+        // 系統狀態
+        let lotteryData = JSON.parse(LOTTERY_DATA);
+        let winnerHistory = [];
+        let drawnPeople = new Set();
+
+        // 獎項名稱陣列（中文數字）
+        const prizeNames = [
+            '頭獎', '貳獎', '參獎', '肆獎', '伍獎', '陸獎', '柒獎', '捌獎', '玖獎', '拾獎',
+            '拾壹獎', '拾貳獎', '拾參獎', '拾肆獎', '拾伍獎', '拾陸獎', '拾柒獎', '拾捌獎', '拾玖獎', '貳拾獎',
+            '貳拾壹獎', '貳拾貳獎', '貳拾參獎', '貳拾肆獎', '貳拾伍獎', '貳拾陸獎', '貳拾柒獎', '貳拾捌獎', '貳拾玖獎', '參拾獎'
+        ];
+
+        // 為每個獎品添加獎項名稱
+        lotteryData.prizes.forEach((prize, index) => {
+            prize.prizeName = prizeNames[index] || `第${index + 1}獎`;
+        });
+
+        // 初始化
+        function init() {
+            populatePrizeSelect();
+            updateStats();
+            updatePrizeInfo();
+        }
+
+        // 填充獎項下拉選單
+        function populatePrizeSelect() {
+            const select = document.getElementById('prizeSelect');
+            select.innerHTML = '<option value="">-- 請選擇獎項 --</option>';
+            
+            lotteryData.prizes.forEach((prize, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                const remaining = prize.quantity - prize.drawn;
+                option.textContent = `${prize.prizeName} - ${prize.name} (剩餘: ${remaining}/${prize.quantity})`;
+                option.disabled = remaining === 0;
+                select.appendChild(option);
+            });
+
+            select.addEventListener('change', function() {
+                updatePrizeInfo();
+                const drawButton = document.getElementById('drawButton');
+                drawButton.disabled = this.value === '';
+            });
+        }
+
+        // 更新獎項資訊
+        function updatePrizeInfo() {
+            const select = document.getElementById('prizeSelect');
+            const prizeInfo = document.getElementById('prizeInfo');
+            const remainingCount = document.getElementById('remainingCount');
+
+            if (select.value !== '') {
+                const prize = lotteryData.prizes[select.value];
+                const remaining = prize.quantity - prize.drawn;
+                remainingCount.textContent = remaining;
+                prizeInfo.style.display = 'block';
+            } else {
+                prizeInfo.style.display = 'none';
+            }
+        }
+
+        // 更新統計資訊（保留函數以維持兼容性）
+        function updateStats() {
+            // 統計資訊已移除，此函數保留但不執行任何操作
+        }
+
+        // 創建彩紙效果
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f7b731', '#5f27cd', '#ffd700'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = (Math.random() * 100) + '%';
+                    confetti.style.top = '-20px';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animation = `confettiFall ${Math.random() * 2 + 2}s linear`;
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 20);
+            }
+        }
+
+        // 抽獎主函數
+        function drawWinner() {
+            const select = document.getElementById('prizeSelect');
+            if (select.value === '') {
+                alert('請先選擇獎項！');
+                return;
+            }
+
+            const prizeIndex = parseInt(select.value);
+            const prize = lotteryData.prizes[prizeIndex];
+
+            // 檢查是否還有剩餘
+            const remaining = prize.quantity - prize.drawn;
+            if (remaining === 0) {
+                alert('此獎項已抽完！');
+                return;
+            }
+
+            // 一次抽出該獎項的所有剩餘數量
+            const drawCount = remaining;
+            const winners = [];
+
+            for (let i = 0; i < drawCount; i++) {
+                // 取得可用的抽獎名單（隱藏條件：先抽參加的人）
+                let availablePool = [];
+                
+                // 過濾出未中獎的參加者
+                const availableParticipants = lotteryData.participants.filter(
+                    p => !drawnPeople.has(p.name)
+                );
+
+                // 過濾出未中獎的未參加者
+                const availableNonParticipants = lotteryData.non_participants.filter(
+                    p => !drawnPeople.has(p.name)
+                );
+
+                // 如果還有參加的人，優先從參加的人中抽
+                if (availableParticipants.length > 0) {
+                    availablePool = availableParticipants;
+                } else if (availableNonParticipants.length > 0) {
+                    // 參加的人抽完了，才抽未參加的人
+                    availablePool = availableNonParticipants;
+                } else {
+                    if (i === 0) {
+                        alert('所有人都已經中獎了！');
+                        return;
+                    } else {
+                        alert(`只能抽出 ${i} 位中獎者，其餘人員都已中獎！`);
+                        break;
+                    }
+                }
+
+                // 隨機抽取
+                const randomIndex = Math.floor(Math.random() * availablePool.length);
+                const winner = availablePool[randomIndex];
+
+                // 記錄中獎
+                prize.drawn++;
+                drawnPeople.add(winner.name);
+                winners.push(winner);
+                
+                // 記錄到歷史
+                winnerHistory.push({
+                    prize: prize,
+                    winner: winner,
+                    timestamp: new Date()
+                });
+            }
+
+            // 顯示中獎者
+            displayWinners(winners, prize);
+
+            // 更新介面
+            populatePrizeSelect();
+            updateStats();
+            updatePrizeInfo();
+            updateHistory();
+
+            // 彩紙效果
+            createConfetti();
+        }
+
+        // 顯示中獎者（支援多人）
+        function displayWinners(winners, prize) {
+            const display = document.getElementById('winnerDisplay');
+            display.classList.remove('empty');
+            
+            let winnersHTML = '';
+            if (winners.length === 1) {
+                // 單一中獎者
+                winnersHTML = `
+                    <h2>🎊 恭喜中獎！ 🎊</h2>
+                    <div class="winner-name">${winners[0].name}</div>
+                    <div class="winner-info">部門：${winners[0].department}</div>
+                    <div class="winner-info">課別：${winners[0].division}</div>
+                    <div style="margin-top: 20px; font-size: 18px; color: #2c3e50; font-weight: bold;">
+                        獲得：${prize.name}
+                    </div>
+                `;
+            } else {
+                // 多位中獎者
+                winnersHTML = `<h2>🎊 恭喜中獎！ 🎊</h2>`;
+                winnersHTML += `<div style="margin: 15px 0; font-size: 18px; color: #2c3e50; font-weight: bold;">
+                    獎品：${prize.name}
+                </div>`;
+                winnersHTML += `<div style="font-size: 16px; color: #555; margin-bottom: 15px;">共 ${winners.length} 位中獎者</div>`;
+                
+                winners.forEach((winner, index) => {
+                    winnersHTML += `
+                        <div style="margin: 12px 0; padding: 12px; background: rgba(255, 255, 255, 0.8); border-radius: 8px; border-left: 4px solid #e74c3c;">
+                            <div style="font-size: 24px; font-weight: bold; color: #e74c3c;">${winner.name}</div>
+                            <div style="font-size: 14px; color: #555; margin-top: 5px;">
+                                ${winner.department} - ${winner.division}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            display.innerHTML = winnersHTML;
+        }
+
+        // 更新中獎記錄
+        function updateHistory() {
+            const tbody = document.getElementById('historyBody');
+            
+            if (winnerHistory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-message">尚無中獎記錄</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            winnerHistory.forEach((record, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="text-align: left; font-weight: bold; color: #667eea;">${record.prize.prizeName}</td>
+                    <td style="text-align: left;">${record.prize.name}</td>
+                    <td style="text-align: left; font-weight: bold; color: #e74c3c;">${record.winner.name}</td>
+                    <td style="text-align: left;">${record.winner.department}</td>
+                    <td style="text-align: left;">${record.winner.division}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 重置系統
+        function resetLottery() {
+            if (!confirm('確定要重置抽獎系統嗎？所有中獎記錄將被清除！')) {
+                return;
+            }
+
+            // 重置資料
+            lotteryData = JSON.parse(LOTTERY_DATA);
+            winnerHistory = [];
+            drawnPeople = new Set();
+
+            // 重置顯示
+            const display = document.getElementById('winnerDisplay');
+            display.classList.add('empty');
+            display.innerHTML = `
+                <h2>🏆 等待抽獎 🏆</h2>
+                <p style="color: #999;">請先選擇獎項</p>
+            `;
+
+            // 重新初始化
+            init();
+            updateHistory();
+
+            alert('系統已重置！');
+        }
+
+        // 頁面載入時初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
